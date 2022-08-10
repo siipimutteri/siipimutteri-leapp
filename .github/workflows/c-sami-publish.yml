@@ -172,9 +172,9 @@ jobs:
           $gitHash = (git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm pkg delete build.publish
-          [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:WIN_CSC_KEY_UUCONTENT)) | Out-File -Encoding "ASCII" windows_sign_certificate.pfx
+          [System.Convert]::FromBase64String($env:WIN_CSC_KEY_UUCONTENT:) | Set-Content windows_sign_certificate.pfx -Encoding byte
           npm run release-win
           #rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
-          Get-Content release
+          Get-ChildItem release
           #curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
           #curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.${GITHUB_RUN_ATTEMPT}_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
