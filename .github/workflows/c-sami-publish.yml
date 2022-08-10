@@ -147,7 +147,7 @@ jobs:
           rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
           ls -la ./release
           curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
-          curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.${GITHUB_RUN_ATTEMPT}_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
 
   publish_windows:
     name: 'Publish windows'
@@ -212,7 +212,7 @@ jobs:
           #rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
           ls -la ./release
           #curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
-          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.${GITHUB_RUN_ATTEMPT}_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
 
 
 #
