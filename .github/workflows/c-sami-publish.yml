@@ -131,6 +131,11 @@ jobs:
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
           npm run release-npm
       - name: Build and publish desktop-app
+        env:
+          JF_USER: ${{ secrets.JF_SECRET_USER }}
+          JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
+          JF_HOST: ${{ secrets.JF_SECRET_HOST }}
+          JF_BIN_REPO: ${{ secrets.JF_SECRET_BIN_REPO }}
         run: |
           cd packages/desktop-app
           npm install ../core
@@ -141,6 +146,8 @@ jobs:
           npm run release-linux
           rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
           ls -la ./release
+          curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
 
 #  build_and_test_cli:
 #    name: 'CLI: build and test'
