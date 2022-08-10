@@ -42,46 +42,6 @@ jobs:
           desktop-app:
             - 'packages/desktop-app/**'
   
-  #publish_core:
-  #  name: 'Core: publish'
-  #  needs: changes
-  #  if: ${{ needs.changes.outputs.core == 'true' || (always() && github.event.inputs.core == 'true') }}
-  #  strategy:
-  #    matrix:
-  #      #os: [ ubuntu-latest, windows-latest, macos-latest ]
-  #      os: [ ubuntu-latest ]
-  #      node_version: [ 16 ]
-  #  runs-on: ${{ matrix.os }}
-  #  steps:
-  #    - name: Prepare GIT
-  #      run: |
-  #        git config --global core.autocrlf false
-  #        git config --global core.eol lf
-  #    - uses: actions/checkout@v3
-  #    - uses: actions/setup-node@v3
-  #      with:
-  #        node-version: ${{ matrix.node_version }}
-  #    - name: Setup NPM
-  #      env:
-  #        JF_USER: ${{ secrets.JF_SECRET_USER }}
-  #        JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
-  #        JF_HOST: ${{ secrets.JF_SECRET_HOST }}
-  #        JF_REPO: ${{ secrets.JF_SECRET_REPO }}
-  #      run: |
-  #        curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
-  #        echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
-  #    - name: Bootstrap and build
-  #      run: |
-  #        npm install
-  #        npm run set-dev-environment
-  #        node_modules/.bin/gushio gushio/bootstrap.js core
-  #    - name: Publish
-  #      run: |
-  #        cd packages/core
-  #        eval curVer=$(npm pkg get version)
-  #        eval gitHash=$(git rev-parse --short HEAD)
-  #        npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
-  #        npm run release
 
   publish_linux:
     name: 'Publish linux'
@@ -120,7 +80,7 @@ jobs:
           npm install
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
           npm run build
       - name: Build and publish cli
         run: |
@@ -128,7 +88,7 @@ jobs:
           npm install ../core
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
           npm run release-npm
       - name: Build and publish desktop-app
         env:
@@ -141,13 +101,13 @@ jobs:
           npm install ../core
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
           npm pkg delete build.publish
           npm run release-linux
           rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
           ls -la ./release
-          curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
-          curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.${GITHUB_RUN_ATTEMPT}_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
 
   publish_windows:
     name: 'Publish windows'
@@ -174,8 +134,10 @@ jobs:
           JF_HOST: ${{ secrets.JF_SECRET_HOST }}
           JF_REPO: ${{ secrets.JF_SECRET_REPO }}
         run: |
-          curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
-          echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
+          $secPass = ConvertTo-SecureString $JF_API_KEY -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential($JF_USER, $secPass)
+          Invoke-WebRequest -Credential $cred -Uri https://$JF_HOST/artifactory/api/npm/auth/ -OutFile $env:USERPROFILE\.npmrc
+          Add-Content $env:USERPROFILE\.npmrc "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/"
       - name: Bootstrap
         run: |
           npm install
@@ -183,17 +145,17 @@ jobs:
         run: |
           cd packages/core
           npm install
-          eval curVer=$(npm pkg get version)
-          eval gitHash=$(git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          $curVer = (npm pkg get version).Trim('"')
+          $gitHash = (git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-win
           npm run build
       - name: Build and publish cli
         run: |
           cd packages/cli
           npm install ../core
-          eval curVer=$(npm pkg get version)
-          eval gitHash=$(git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          $curVer = (npm pkg get version).Trim('"')
+          $gitHash = (git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-win
           npm run release-npm
       - name: Build and publish desktop-app
         env:
@@ -204,9 +166,9 @@ jobs:
         run: |
           cd packages/desktop-app
           npm install ../core
-          eval curVer=$(npm pkg get version)
-          eval gitHash=$(git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          $curVer = (npm pkg get version).Trim('"')
+          $gitHash = (git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-win
           npm pkg delete build.publish
           npm run release-windows
           #rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
