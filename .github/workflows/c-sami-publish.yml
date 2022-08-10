@@ -176,5 +176,6 @@ jobs:
           npm run release-win
           #rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
           Get-ChildItem release
-          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
-          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.${GITHUB_RUN_ATTEMPT}_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          $secPass = ConvertTo-SecureString $env:JF_API_KEY -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential($env:JF_USER, $secPass)
+          Invoke-RestMethod -Method Put -Credential $creds -InFile .\release\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.zip -Uri https://$env:JF_HOST/artifactory/$env:JF_BIN_REPO/Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.zip
