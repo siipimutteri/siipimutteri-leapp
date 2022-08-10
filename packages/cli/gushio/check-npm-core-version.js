@@ -13,7 +13,7 @@ module.exports = async function checkNpmCoreVersion(path, shellJs) {
   const currentCoreNpmVersion = result.stdout.trim()
 
   let requiredCoreVersion = cliPackageJson.dependencies[corePackageName];
-  if (!requiredCoreVersion.includes(currentCoreNpmVersion)) {
+  if (!requiredCoreVersion.includes('file:../core') && !requiredCoreVersion.includes(currentCoreNpmVersion)) {
     throw new Error(`${corePackageName} required version ${requiredCoreVersion} doesn't match the current version on npm ${currentCoreNpmVersion}`)
   }
 }
