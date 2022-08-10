@@ -137,11 +137,9 @@ jobs:
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm pkg delete build.publish
           npm run release-linux
-          rm -Rf ./release/linux-unpacked
-          rm -Rf ./release/.cache
-          rm -Rf ./release/builder-debug.yml
-          rm -Rf ./release/builder-effective-config.yaml
+          rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
           ls -la ./release
 
 #  build_and_test_cli:
