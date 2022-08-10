@@ -149,39 +149,72 @@ jobs:
           curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
           curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
 
-#  build_and_test_cli:
-#    name: 'CLI: build and test'
-#    needs: changes
-#    if: ${{ needs.changes.outputs.cli == 'true' || (always() && github.event.inputs.cli == 'true') }}
-#    strategy:
-#      matrix:
-#        #os: [ ubuntu-latest, windows-latest, macos-latest ]
-#        os: [ ubuntu-latest ]
-#        node_version: [ 16 ]
-#    env:
-#      SKIP_INTEGRATION_TESTS: "true"
-#    runs-on: ${{ matrix.os }}
-#    steps:
-#      - name: Prepare GIT
-#        run: |
-#          git config --global core.autocrlf false
-#          git config --global core.eol lf
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-node@v3
-#        with:
-#          node-version: ${{ matrix.node_version }}
-#      - name: Bootstrap
-#        run: |
-#          npm install
-#          node_modules/.bin/gushio gushio/bootstrap.js core cli
-#      - name: Build
-#        run: |
-#          cd packages/cli
-#          npm run prepack
-#      - name: Test
-#        run: |
-#          cd packages/cli
-#          npm test
+  publish_windows:
+    name: 'Publish windows'
+    needs: changes
+    if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.cli == 'true' || needs.changes.outputs.desktop-app == 'true' || (always() && github.event.inputs.windows == 'true') }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+        node_version: [ 16 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Prepare GIT
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+      - name: Setup NPM
+        env:
+          JF_USER: ${{ secrets.JF_SECRET_USER }}
+          JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
+          JF_HOST: ${{ secrets.JF_SECRET_HOST }}
+          JF_REPO: ${{ secrets.JF_SECRET_REPO }}
+        run: |
+          curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
+          echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
+      - name: Bootstrap
+        run: |
+          npm install
+      - name: Build core
+        run: |
+          cd packages/core
+          npm install
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm run build
+      - name: Build and publish cli
+        run: |
+          cd packages/cli
+          npm install ../core
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm run release-npm
+      - name: Build and publish desktop-app
+        env:
+          JF_USER: ${{ secrets.JF_SECRET_USER }}
+          JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
+          JF_HOST: ${{ secrets.JF_SECRET_HOST }}
+          JF_BIN_REPO: ${{ secrets.JF_SECRET_BIN_REPO }}
+        run: |
+          cd packages/desktop-app
+          npm install ../core
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm pkg delete build.publish
+          npm run release-windows
+          #rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
+          ls -la ./release
+          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
+
+
 #
 #  build_and_test_desktop-app:
 #    name: 'Desktop app: build and test'
