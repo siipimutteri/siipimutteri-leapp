@@ -6,16 +6,16 @@ on:
       - own-build
   workflow_dispatch:
     inputs:
-      #core:
-      #  description: "Publish core"
-      #  required: false
-      #  type: boolean
-      cli:
-        description: "Publish cli"
+      linux:
+        description: "Publish linux packages"
         required: false
         type: boolean
-      desktop-app:
-        description: "Publish desktop app"
+      mac:
+        description: "Publish mac packages"
+        required: false
+        type: boolean
+      windows:
+        description: "Publish windows packages"
         required: false
         type: boolean
       
@@ -83,10 +83,10 @@ jobs:
   #        npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
   #        npm run release
 
-  publish_cli:
-    name: 'CLI: publish'
+  publish_linux:
+    name: 'Publish linux'
     needs: changes
-    if: ${{ needs.changes.outputs.cli == 'true' || (always() && github.event.inputs.cli == 'true') }}
+    if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.cli == 'true' || needs.changes.outputs.desktop-app == 'true' || (always() && github.event.inputs.linux == 'true') }}
     strategy:
       matrix:
         #os: [ ubuntu-latest, windows-latest, macos-latest ]
@@ -111,14 +111,14 @@ jobs:
         run: |
           curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
           echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
-      - name: Bootstrap and build
+      - name: Clean and bootstrap
         run: |
           npm install
-          npm run set-dev-environment
-          node_modules/.bin/gushio gushio/bootstrap.js core cli
-      - name: Publish
+          npm run clean-and-bootstrap
+      - name: Publish cli
         run: |
           cd packages/cli
+          npm install ../core
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
