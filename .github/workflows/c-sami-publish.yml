@@ -115,6 +115,7 @@ jobs:
         run: |
           npm install
       - name: Build core
+        run: |
           cd packages/core
           npm install
           eval curVer=$(npm pkg get version)
