@@ -134,10 +134,10 @@ jobs:
           JF_HOST: ${{ secrets.JF_SECRET_HOST }}
           JF_REPO: ${{ secrets.JF_SECRET_REPO }}
         run: |
-          $secPass = ConvertTo-SecureString $JF_API_KEY -AsPlainText -Force
-          $cred = New-Object System.Management.Automation.PSCredential($JF_USER, $secPass)
-          Invoke-WebRequest -Credential $cred -Uri https://$JF_HOST/artifactory/api/npm/auth/ -OutFile $env:USERPROFILE\.npmrc
-          Add-Content $env:USERPROFILE\.npmrc "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/"
+          $secPass = ConvertTo-SecureString $env:JF_API_KEY -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential($env:JF_USER, $secPass)
+          Invoke-WebRequest -Credential $cred -Uri https://$env:JF_HOST/artifactory/api/npm/auth/ -OutFile $env:USERPROFILE\.npmrc
+          Add-Content $env:USERPROFILE\.npmrc "registry=https://$env:JF_HOST/artifactory/api/npm/$env:JF_REPO/"
       - name: Bootstrap
         run: |
           npm install
@@ -147,7 +147,7 @@ jobs:
           npm install
           $curVer = (npm pkg get version).Trim('"')
           $gitHash = (git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-win
+          npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm run build
       - name: Build and publish cli
         run: |
@@ -155,7 +155,7 @@ jobs:
           npm install ../core
           $curVer = (npm pkg get version).Trim('"')
           $gitHash = (git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-win
+          npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm run release-npm
       - name: Build and publish desktop-app
         env:
@@ -163,51 +163,18 @@ jobs:
           JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
           JF_HOST: ${{ secrets.JF_SECRET_HOST }}
           JF_BIN_REPO: ${{ secrets.JF_SECRET_BIN_REPO }}
+          WIN_CSC_KEY_UUCONTENT: ${{ secrets.WIN_CSC_KEY_UUCONTENT }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
           cd packages/desktop-app
           npm install ../core
           $curVer = (npm pkg get version).Trim('"')
           $gitHash = (git rev-parse --short HEAD)
-          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-win
+          npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm pkg delete build.publish
+          [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:WIN_CSC_KEY_UUCONTENT)) | Out-File -Encoding "ASCII" windows_sign_certificate.pfx
           npm run release-windows
           #rm -Rf ./release/linux-unpacked ./release/.cache ./release/builder-debug.yml ./release/builder-effective-config.yaml ./release/.icon-set ./release/latest-linux.yml
           ls -la ./release
           #curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
           #curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.${GITHUB_RUN_ATTEMPT}_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
-
-
-#
-#  build_and_test_desktop-app:
-#    name: 'Desktop app: build and test'
-#    needs: changes
-#    if: ${{ needs.changes.outputs.desktop-app == 'true' || (always() && github.event.inputs.desktop-app == 'true') }}
-#    strategy:
-#      matrix:
-#        #os: [ ubuntu-latest, windows-latest, macos-latest ]
-#        os: [ ubuntu-latest ]
-#        node_version: [ 16 ]
-#    env:
-#      SKIP_INTEGRATION_TESTS: "true"
-#    runs-on: ${{ matrix.os }}
-#    steps:
-#      - name: Prepare GIT
-#        run: |
-#          git config --global core.autocrlf false
-#          git config --global core.eol lf
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-node@v3
-#        with:
-#          node-version: ${{ matrix.node_version }}
-#      - name: Bootstrap
-#        run: |
-#          npm install
-#          node_modules/.bin/gushio gushio/bootstrap.js core desktop-app
-#      - name: Build
-#        run: |
-#          cd packages/desktop-app
-#          npm run build-prod
-#      - name: Test
-#        run: |
-#          cd packages/desktop-app
-#          node_modules/.bin/ng test --browsers=ChromeHeadless --watch=false --progress=false
