@@ -111,11 +111,17 @@ jobs:
         run: |
           curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
           echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
-      - name: Clean and bootstrap
+      - name: Bootstrap
         run: |
           npm install
-          npm run clean-and-bootstrap
-      - name: Publish cli
+      - name: Build core
+          cd packages/core
+          npm install
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm run build
+      - name: Build and publish cli
         run: |
           cd packages/cli
           npm install ../core
@@ -123,6 +129,19 @@ jobs:
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
           npm run release-npm
+      - name: Build and publish desktop-app
+        run: |
+          cd packages/desktop-app
+          npm install ../core
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm run release-linux
+          rm -Rf ./release/linux-unpacked
+          rm -Rf ./release/.cache
+          rm -Rf ./release/builder-debug.yml
+          rm -Rf ./release/builder-effective-config.yaml
+          ls -la ./release
 
 #  build_and_test_cli:
 #    name: 'CLI: build and test'
