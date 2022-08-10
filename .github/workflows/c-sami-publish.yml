@@ -1,0 +1,193 @@
+name: Leapp Publish
+
+on:
+  push:
+    branches:
+      - own-build
+  workflow_dispatch:
+    inputs:
+      #core:
+      #  description: "Publish core"
+      #  required: false
+      #  type: boolean
+      cli:
+        description: "Publish cli"
+        required: false
+        type: boolean
+      desktop-app:
+        description: "Publish desktop app"
+        required: false
+        type: boolean
+      
+jobs:
+  changes:
+    name: 'Inspect changes'
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.filter.outputs.core }}
+      cli: ${{ steps.filter.outputs.cli }}
+      desktop-app: ${{ steps.filter.outputs.desktop-app }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        base: HEAD
+        filters: |
+          core:
+            - 'packages/core/**'
+          cli:
+            - 'packages/cli/**'
+          desktop-app:
+            - 'packages/desktop-app/**'
+  
+  #publish_core:
+  #  name: 'Core: publish'
+  #  needs: changes
+  #  if: ${{ needs.changes.outputs.core == 'true' || (always() && github.event.inputs.core == 'true') }}
+  #  strategy:
+  #    matrix:
+  #      #os: [ ubuntu-latest, windows-latest, macos-latest ]
+  #      os: [ ubuntu-latest ]
+  #      node_version: [ 16 ]
+  #  runs-on: ${{ matrix.os }}
+  #  steps:
+  #    - name: Prepare GIT
+  #      run: |
+  #        git config --global core.autocrlf false
+  #        git config --global core.eol lf
+  #    - uses: actions/checkout@v3
+  #    - uses: actions/setup-node@v3
+  #      with:
+  #        node-version: ${{ matrix.node_version }}
+  #    - name: Setup NPM
+  #      env:
+  #        JF_USER: ${{ secrets.JF_SECRET_USER }}
+  #        JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
+  #        JF_HOST: ${{ secrets.JF_SECRET_HOST }}
+  #        JF_REPO: ${{ secrets.JF_SECRET_REPO }}
+  #      run: |
+  #        curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
+  #        echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
+  #    - name: Bootstrap and build
+  #      run: |
+  #        npm install
+  #        npm run set-dev-environment
+  #        node_modules/.bin/gushio gushio/bootstrap.js core
+  #    - name: Publish
+  #      run: |
+  #        cd packages/core
+  #        eval curVer=$(npm pkg get version)
+  #        eval gitHash=$(git rev-parse --short HEAD)
+  #        npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+  #        npm run release
+
+  publish_cli:
+    name: 'CLI: publish'
+    needs: changes
+    if: ${{ needs.changes.outputs.cli == 'true' || (always() && github.event.inputs.cli == 'true') }}
+    strategy:
+      matrix:
+        #os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest ]
+        node_version: [ 16 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Prepare GIT
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+      - name: Setup NPM
+        env:
+          JF_USER: ${{ secrets.JF_SECRET_USER }}
+          JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
+          JF_HOST: ${{ secrets.JF_SECRET_HOST }}
+          JF_REPO: ${{ secrets.JF_SECRET_REPO }}
+        run: |
+          curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
+          echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
+      - name: Bootstrap and build
+        run: |
+          npm install
+          npm run set-dev-environment
+          node_modules/.bin/gushio gushio/bootstrap.js core cli
+      - name: Publish
+        run: |
+          cd packages/cli
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT
+          npm run release-npm
+
+#  build_and_test_cli:
+#    name: 'CLI: build and test'
+#    needs: changes
+#    if: ${{ needs.changes.outputs.cli == 'true' || (always() && github.event.inputs.cli == 'true') }}
+#    strategy:
+#      matrix:
+#        #os: [ ubuntu-latest, windows-latest, macos-latest ]
+#        os: [ ubuntu-latest ]
+#        node_version: [ 16 ]
+#    env:
+#      SKIP_INTEGRATION_TESTS: "true"
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - name: Prepare GIT
+#        run: |
+#          git config --global core.autocrlf false
+#          git config --global core.eol lf
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ matrix.node_version }}
+#      - name: Bootstrap
+#        run: |
+#          npm install
+#          node_modules/.bin/gushio gushio/bootstrap.js core cli
+#      - name: Build
+#        run: |
+#          cd packages/cli
+#          npm run prepack
+#      - name: Test
+#        run: |
+#          cd packages/cli
+#          npm test
+#
+#  build_and_test_desktop-app:
+#    name: 'Desktop app: build and test'
+#    needs: changes
+#    if: ${{ needs.changes.outputs.desktop-app == 'true' || (always() && github.event.inputs.desktop-app == 'true') }}
+#    strategy:
+#      matrix:
+#        #os: [ ubuntu-latest, windows-latest, macos-latest ]
+#        os: [ ubuntu-latest ]
+#        node_version: [ 16 ]
+#    env:
+#      SKIP_INTEGRATION_TESTS: "true"
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - name: Prepare GIT
+#        run: |
+#          git config --global core.autocrlf false
+#          git config --global core.eol lf
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ matrix.node_version }}
+#      - name: Bootstrap
+#        run: |
+#          npm install
+#          node_modules/.bin/gushio gushio/bootstrap.js core desktop-app
+#      - name: Build
+#        run: |
+#          cd packages/desktop-app
+#          npm run build-prod
+#      - name: Test
+#        run: |
+#          cd packages/desktop-app
+#          node_modules/.bin/ng test --browsers=ChromeHeadless --watch=false --progress=false
