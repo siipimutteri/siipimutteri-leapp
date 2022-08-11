@@ -73,17 +73,9 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-      #- name: Setup NPM
-      #  env:
-      #    JF_USER: ${{ secrets.JF_SECRET_USER }}
-      #    JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
-      #    JF_HOST: ${{ secrets.JF_SECRET_HOST }}
-      #    JF_REPO: ${{ secrets.JF_SECRET_REPO }}
-      #  run: |
-      #    curl -u $JF_USER:$JF_API_KEY https://$JF_HOST/artifactory/api/npm/auth/ -o ~/.npmrc
-      #    echo "registry=https://$JF_HOST/artifactory/api/npm/$JF_REPO/" >> ~/.npmrc
       - name: Bootstrap
         run: |
+          mkdir upload
           npm install
       - name: Build core
         run: |
@@ -93,7 +85,7 @@ jobs:
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
           npm run build
-      - name: Build and publish cli
+      - name: Build cli
         run: |
           cd packages/cli
           npm install
@@ -102,13 +94,7 @@ jobs:
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
           npm run prepack
-          #npm run release-npm
-      - name: Build and publish desktop-app
-        #env:
-        #  JF_USER: ${{ secrets.JF_SECRET_USER }}
-        #  JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
-        #  JF_HOST: ${{ secrets.JF_SECRET_HOST }}
-        #  JF_BIN_REPO: ${{ secrets.JF_SECRET_BIN_REPO }}
+      - name: Build desktop-app
         run: |
           cd packages/desktop-app
           npm install
@@ -118,9 +104,19 @@ jobs:
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
           npm pkg delete build.publish
           npm run release-linux
-          ls -la ./release
-          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux.AppImage https://$JF_HOST/artifactory/$JF_BIN_REPO/
-          #curl -u $JF_USER:$JF_API_KEY -T release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux_amd64.deb https://$JF_HOST/artifactory/$JF_BIN_REPO/
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux.AppImage ../../upload
+          cp -v release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux_amd64.deb ../../upload
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_BUCKET_REGION }}
+      - name: Publish
+        env:
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+        run: |
+          aws s3 cp upload/ s3://$AWS_S3_BUCKET_NAME/ --recursive
 
   publish_windows:
     name: 'Publish windows'
@@ -151,19 +147,9 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-      #- name: Setup NPM
-      #  env:
-      #    JF_USER: ${{ secrets.JF_SECRET_USER }}
-      #    JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
-      #    JF_HOST: ${{ secrets.JF_SECRET_HOST }}
-      #    JF_REPO: ${{ secrets.JF_SECRET_REPO }}
-      #  run: |
-      #    $secPass = ConvertTo-SecureString $env:JF_API_KEY -AsPlainText -Force
-      #    $cred = New-Object System.Management.Automation.PSCredential($env:JF_USER, $secPass)
-      #    Invoke-WebRequest -Credential $cred -Uri https://$env:JF_HOST/artifactory/api/npm/auth/ -OutFile $env:USERPROFILE\.npmrc
-      #    Add-Content $env:USERPROFILE\.npmrc "registry=https://$env:JF_HOST/artifactory/api/npm/$env:JF_REPO/"
       - name: Bootstrap
         run: |
+          New-Item -Path upload -ItemType Directory
           npm install
       - name: Build core
         run: |
@@ -173,25 +159,22 @@ jobs:
           $gitHash = (git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm run build
-      - name: Build and publish cli
+      - name: Build cli
         run: |
           cd packages/cli
+          npm install
           npm install ../core
           $curVer = (npm pkg get version).Trim('"')
           $gitHash = (git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm run prepack
-          #npm run release-npm
       - name: Build and publish desktop-app
         env:
-          #JF_USER: ${{ secrets.JF_SECRET_USER }}
-          #JF_API_KEY: ${{ secrets.JF_SECRET_API_KEY }}
-          #JF_HOST: ${{ secrets.JF_SECRET_HOST }}
-          #JF_BIN_REPO: ${{ secrets.JF_SECRET_BIN_REPO }}
           WIN_CSC_KEY_UUCONTENT: ${{ secrets.WIN_CSC_KEY_UUCONTENT }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
           cd packages/desktop-app
+          npm install
           npm install ../core
           $curVer = (npm pkg get version).Trim('"')
           $gitHash = (git rev-parse --short HEAD)
@@ -199,7 +182,15 @@ jobs:
           npm pkg delete build.publish
           [System.Convert]::FromBase64String($env:WIN_CSC_KEY_UUCONTENT) | Set-Content -Path windows_sign_certificate.pfx -AsByteStream
           npm run release-win
-          Get-ChildItem release
-          #$secPass = ConvertTo-SecureString $env:JF_API_KEY -AsPlainText -Force
-          #$cred = New-Object System.Management.Automation.PSCredential($env:JF_USER, $secPass)
-          #Invoke-RestMethod -Method Put -Credential $creds -InFile .\release\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win-win.zip -Uri https://$env:JF_HOST/artifactory/$env:JF_BIN_REPO/Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win-win.zip
+          Copy-Item -Path release\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win-win.zip -Destination ..\..\upload\ -Verbose
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_BUCKET_REGION }}
+      - name: Publish
+        env:
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+        run: |
+          aws s3 cp upload/ s3://$AWS_S3_BUCKET_NAME/ --recursive
