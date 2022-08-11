@@ -49,8 +49,7 @@ jobs:
     if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.cli == 'true' || needs.changes.outputs.desktop-app == 'true' || (always() && github.event.inputs.linux == 'true') }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
-        #os: [ ubuntu-latest ]
+        os: [ ubuntu-latest ]
         node_version: [ 16 ]
     runs-on: ${{ matrix.os }}
     steps:
@@ -93,6 +92,7 @@ jobs:
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
           npm pack
+          cp -v noovolari-leapp-cli-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux.tgz ../../upload
       - name: Build desktop-app
         run: |
           cd packages/desktop-app
@@ -165,6 +165,7 @@ jobs:
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac
           npm pack
+          cp -v noovolari-leapp-cli-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac.tgz ../../upload
       - name: Build desktop-app
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -175,8 +176,12 @@ jobs:
           eval gitHash=$(git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac
           npm pkg delete build.publish
-          npm run release-mac || true
-          zip -rq ../../upload/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac.zip release/mac/Leapp.app
+          npm pkg delete build.afterSign
+          npm pkg delete build.mac.forceCodeSigning
+          npm pkg delete build.mac.hardenedRuntime
+          npm run release-mac
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-mac.zip ../../upload/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac.zip
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.dmg ../../upload
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -238,10 +243,8 @@ jobs:
           $gitHash = (git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm pack
+          Copy-Item -Path noovolari-leapp-cli-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.tgz -Destination ..\..\upload\ -Verbose
       - name: Build and publish desktop-app
-        env:
-          WIN_CSC_KEY_UUCONTENT: ${{ secrets.WIN_CSC_KEY_UUCONTENT }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
           cd packages/desktop-app
           npm install ../core
@@ -249,9 +252,10 @@ jobs:
           $gitHash = (git rev-parse --short HEAD)
           npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
           npm pkg delete build.publish
-          [System.Convert]::FromBase64String($env:WIN_CSC_KEY_UUCONTENT) | Set-Content -Path windows_sign_certificate.pfx -AsByteStream
+          npm pkg delete build.win.certificateFile
           npm run release-win
-          Copy-Item -Path release\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win-win.zip -Destination ..\..\upload\ -Verbose
+          Copy-Item -Path "release\Leapp Setup $curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT.exe" -Destination ..\..\upload\ -Verbose
+          Copy-Item -Path release\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win-win.zip -Destination ..\..\upload\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.zip -Verbose
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
