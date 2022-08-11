@@ -181,7 +181,7 @@ jobs:
           npm pkg delete build.mac.hardenedRuntime
           npm run release-mac
           cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-mac.zip ../../upload/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac.zip
-          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT.dmg ../../upload
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac.dmg ../../upload
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -254,7 +254,7 @@ jobs:
           npm pkg delete build.publish
           npm pkg delete build.win.certificateFile
           npm run release-win
-          Copy-Item -Path "release\Leapp Setup $curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT.exe" -Destination ..\..\upload\ -Verbose
+          Copy-Item -Path "release\Leapp Setup $curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.exe" -Destination ..\..\upload\ -Verbose
           Copy-Item -Path release\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win-win.zip -Destination ..\..\upload\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.zip -Verbose
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
