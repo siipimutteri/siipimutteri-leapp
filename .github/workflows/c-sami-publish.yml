@@ -88,7 +88,6 @@ jobs:
       - name: Build cli
         run: |
           cd packages/cli
-          npm install
           npm install ../core
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
@@ -97,7 +96,6 @@ jobs:
       - name: Build desktop-app
         run: |
           cd packages/desktop-app
-          npm install
           npm install ../core
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
@@ -162,7 +160,6 @@ jobs:
       - name: Build cli
         run: |
           cd packages/cli
-          npm install
           npm install ../core
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
@@ -173,7 +170,6 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: |
           cd packages/desktop-app
-          npm install
           npm install ../core
           eval curVer=$(npm pkg get version)
           eval gitHash=$(git rev-parse --short HEAD)
@@ -237,7 +233,6 @@ jobs:
       - name: Build cli
         run: |
           cd packages/cli
-          npm install
           npm install ../core
           $curVer = (npm pkg get version).Trim('"')
           $gitHash = (git rev-parse --short HEAD)
@@ -249,7 +244,6 @@ jobs:
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
           cd packages/desktop-app
-          npm install
           npm install ../core
           $curVer = (npm pkg get version).Trim('"')
           $gitHash = (git rev-parse --short HEAD)
