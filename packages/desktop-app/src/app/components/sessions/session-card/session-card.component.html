@@ -94,7 +94,7 @@
   </ng-container>
 
   <ng-container
-    *ngIf="session.type === eSessionType.awsSsoRole || session.type === eSessionType.awsIamRoleFederated || session.type === eSessionType.awsIamRoleChained">
+    *ngIf="session.type === eSessionType.awsIamRoleFederated || session.type === eSessionType.awsIamRoleChained || session.type === eSessionType.awsSsoRole || session.type === eSessionType.awsIamUser">
     <button mat-menu-item (click)="openAwsWebConsole($event);">
       <i class="moon-Open-Web-Console"></i>
       <span>&nbsp;&nbsp;Open Web Console</span>
@@ -104,7 +104,7 @@
   <div class="divider"></div>
 
   <ng-container
-    *ngIf="(session.type === eSessionType.awsIamRoleFederated || session.type === eSessionType.awsIamRoleChained || session.type === eSessionType.awsSsoRole)">
+    *ngIf="(session.type === eSessionType.awsIamRoleFederated || session.type === eSessionType.awsIamRoleChained || session.type === eSessionType.awsSsoRole || session.type === eSessionType.awsIamUser)">
     <button mat-menu-item [matMenuTriggerFor]="copy">
       <i class="moon-Copy"></i>
       <span>&nbsp;&nbsp;Copy</span>
@@ -167,7 +167,8 @@
     <i class="fab fa-aws"></i>&nbsp;
     <span>Account Number</span>
   </button>
-  <button mat-menu-item (click)="copyCredentials(session, 2, $event);">
+  <button mat-menu-item (click)="copyCredentials(session, 2, $event);"
+          *ngIf="(session.type === eSessionType.awsIamRoleFederated || session.type === eSessionType.awsIamRoleChained || session.type === eSessionType.awsSsoRole)">
     <i class="fab fa-aws"></i>&nbsp;
     <span>Role ARN</span>
   </button>
