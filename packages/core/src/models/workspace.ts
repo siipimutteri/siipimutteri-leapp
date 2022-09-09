@@ -33,6 +33,8 @@ export class Workspace {
 
   private _colorTheme: string;
 
+  private _insecureTls: boolean;
+
   private _proxyConfiguration: {
     proxyProtocol: string;
     proxyUrl?: string;
@@ -59,6 +61,8 @@ export class Workspace {
 
     this._awsSsoIntegrations = [];
     this._azureIntegrations = [];
+
+    this._insecureTls = false;
 
     this._proxyConfiguration = {
       proxyProtocol: "https",
@@ -109,6 +113,14 @@ export class Workspace {
 
   set sessions(value: Session[]) {
     this._sessions = value;
+  }
+
+  get insecureTls(): boolean {
+    return this._insecureTls;
+  }
+
+  set insecureTls(value: boolean) {
+    this._insecureTls = value;
   }
 
   get proxyConfiguration(): { proxyProtocol: string; proxyUrl?: string; proxyPort: string; username?: string; password?: string } {

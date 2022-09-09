@@ -56,12 +56,17 @@ export class OptionsDialogComponent implements OnInit, AfterViewInit {
   colorTheme: string;
   selectedColorTheme: string;
 
+  insecureTls: boolean;
+  caCertificateList: []; // TODO: Create CACertificateContainer[]
+  addingCaCertificate: boolean;
+
   pluginList: PluginContainer[];
   fetchingPlugins: boolean;
 
   form = new FormGroup({
     idpUrl: new FormControl(""),
     awsProfile: new FormControl(""),
+    insecureTls: new FormControl(""),
     proxyUrl: new FormControl(""),
     proxyProtocol: new FormControl(""),
     proxyPort: new FormControl(""),
@@ -74,6 +79,7 @@ export class OptionsDialogComponent implements OnInit, AfterViewInit {
     terminalSelect: new FormControl(""),
     colorThemeSelect: new FormControl(""),
     credentialMethodSelect: new FormControl(""),
+    caCertificatePem: new FormControl(""),
     pluginDeepLink: new FormControl(""),
   });
 
@@ -103,6 +109,7 @@ export class OptionsDialogComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.fetchingPlugins = false;
     this.idpUrlValue = "";
+    this.insecureTls = this.optionsService.insecureTls || false;
     this.proxyProtocol = this.optionsService.proxyConfiguration.proxyProtocol;
     this.proxyUrl = this.optionsService.proxyConfiguration.proxyUrl;
     this.proxyPort = this.optionsService.proxyConfiguration.proxyPort;
@@ -110,6 +117,7 @@ export class OptionsDialogComponent implements OnInit, AfterViewInit {
     this.proxyPassword = this.optionsService.proxyConfiguration.password || "";
 
     this.form.controls["idpUrl"].setValue(this.idpUrlValue);
+    this.form.controls["insecureTls"].setValue(this.insecureTls);
     this.form.controls["proxyUrl"].setValue(this.proxyUrl);
     this.form.controls["proxyProtocol"].setValue(this.proxyProtocol);
     this.form.controls["proxyPort"].setValue(this.proxyPort);
@@ -131,6 +139,8 @@ export class OptionsDialogComponent implements OnInit, AfterViewInit {
     this.appService.validateAllFormFields(this.form);
 
     this.pluginList = this.appProviderService.pluginManagerService.pluginContainers;
+
+    this.caCertificateList = []; // TODO
   }
 
   ngAfterViewInit(): void {
@@ -157,6 +167,8 @@ export class OptionsDialogComponent implements OnInit, AfterViewInit {
    */
   saveOptions(): void {
     if (this.form.valid) {
+      this.optionsService.insecureTls = this.insecureTls;
+
       this.optionsService.updateProxyConfiguration({
         proxyUrl: this.form.controls["proxyUrl"].value,
         proxyProtocol: this.form.controls["proxyProtocol"].value,
@@ -434,6 +446,21 @@ export class OptionsDialogComponent implements OnInit, AfterViewInit {
         await sessionService.start(activeSessions[i].sessionId);
       }
     }
+  }
+
+  async addCaCertificate(): Promise<void> {
+    this.addingCaCertificate = true;
+    //TODO
+    this.addingCaCertificate = false;
+  }
+
+  // TODO {} -> CACertificateContainer
+  getCaCertificateExtraInfo(_caCertificate: unknown): string {
+    return `TODO`;
+  }
+
+  getBooleanIcon(_value: boolean): string {
+    return "TODO";
   }
 
   async installPlugin(): Promise<void> {

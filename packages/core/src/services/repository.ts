@@ -358,6 +358,16 @@ export class Repository {
     return workspace.azureIntegrations;
   }
 
+  getInsecureTls(): boolean {
+    return this.getWorkspace().insecureTls;
+  }
+
+  updateInsecureTls(value: boolean): void {
+    const workspace = this.getWorkspace();
+    workspace.insecureTls = value;
+    this.persistWorkspace(workspace);
+  }
+
   // PROXY CONFIGURATION
 
   getProxyConfiguration(): any {

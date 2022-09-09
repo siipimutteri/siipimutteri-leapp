@@ -277,9 +277,18 @@ export class AwsSsoIntegrationService implements IIntegrationService {
   }
 
   private async login(integrationId: string | number, region: string, portalUrl: string): Promise<LoginResponse> {
-    const redirectClient = this.nativeService.followRedirects[this.getProtocol(portalUrl)];
+    const protocol = this.getProtocol(portalUrl);
+    const redirectClient = this.nativeService.followRedirects[protocol];
+
+    // Skip TLS validation, if insecure tls parameter is set in global options
+    const options = {};
+    const insecureTls = this.repository.getWorkspace().insecureTls || false;
+    if (protocol === "https" && insecureTls) {
+      options["rejectUnauthorized"] = false;
+    }
+
     portalUrl = await new Promise((resolve, _) => {
-      const request = redirectClient.request(portalUrl, (response) => resolve(response.responseUrl));
+      const request = redirectClient.request(portalUrl, options, (response) => resolve(response.responseUrl));
       request.end();
     });
 

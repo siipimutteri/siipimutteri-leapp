@@ -133,6 +133,61 @@
 
     <mat-tab>
       <ng-template mat-tab-label>
+        <i class="mat-tab-icon moon-Earth"></i>
+        <span class="mat-tab-label-text">Network</span>
+      </ng-template>
+
+      <div class="panel">
+        <i class="far fa-exclamation-triangle"></i>Work in progress
+        <h2>TLS Settings</h2>
+
+        <div class="form-container">
+          <div class="form-group">
+            <div class="form-field">
+              <mat-checkbox formControlName="insecureTls" [(ngModel)]="insecureTls"></mat-checkbox>
+              Skip certificate validation (<i class="fas fa-exclamation-triangle"></i> UNSAFE <i class="fas fa-exclamation-triangle"></i>)
+            </div>
+            Skipping certificate validation exposes you to man-in-the-middle attacks and your credentials can be compromized by an attacker.
+            Don't use this unless you know what you are doing and you are aware of the risks and possible consequences.
+            This build is for testing issues with firewall/IDS/IPS/VPN that are executing SSL inspection with self-signed CA chain.            
+            <hr>
+            <h4 class="work-in-progress">User-defined CA certificates</h4>
+            <div class="work-in-progress">Add certificate</div>
+            <div class="form-field form-control-input-button max-width">
+              <input formControlName="caCertificatePem" type="text" class="form-control max-width" placeholder="-----BEGIN CERTIFICATE-----"
+              disabled="true" (keydown.enter)="$event.preventDefault(); addCaCertificate();">
+              <!--<button [disabled]="addingCaCertificate" class="button" type="button" (click)="addCaCertificate();"><i class="moon-Add"></i></button>-->
+              <button disabled="true" class="button" type="button" (click)="addCaCertificate();"><i class="moon-Add"></i></button>
+            </div>
+
+            <div class="form-group scrollable max-height-320 tableFixHead">
+              <table class="table plugin-table">
+                <thead>
+                  <th><span class="centered-column">Common name</span></th>
+                  <th><span class="centered-column">Issuer</span></th>
+                  <th><span class="centered-column">Is CA</span></th>
+                  <th><span class="centered-column">Expires</span></th>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let caCertificate of caCertificateList">
+                    <tr>
+                      <td><i class="fa fa-info-circle blackery" matTooltipClass="allow-cr" [matTooltip]="getCaCertificateExtraInfo(caCertificate)"></i>&nbsp;{{caCertificate.Subject.CN}}</td>
+                      <td>{{caCertificate.Issuer.CN}}</td>
+                      <td [innerHTML]="getBooleanIcon(caCertificate.X509v3_extensions.X509v3_Basic_Constraints.CA)"></td>
+                      <td>{{caCertificate.Validity.Not_After}}</td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
         <i class="mat-tab-icon moon-Terminal"></i>
         <span class="mat-tab-label-text">IdP Url</span>
       </ng-template>

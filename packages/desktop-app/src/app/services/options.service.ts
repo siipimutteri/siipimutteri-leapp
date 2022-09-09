@@ -22,6 +22,17 @@ export class OptionsService {
     this.workspaceService.persistWorkspace(workspace);
   }
 
+  get insecureTls(): boolean {
+    const workspace = this.workspaceService.getWorkspace();
+    return workspace.insecureTls;
+  }
+
+  set insecureTls(value: boolean) {
+    const workspace = this.workspaceService.getWorkspace();
+    workspace.insecureTls = value;
+    this.workspaceService.persistWorkspace(workspace);
+  }
+
   get proxyConfiguration(): { proxyProtocol: string; proxyUrl?: string; proxyPort: string; username?: string; password?: string } {
     const workspace = this.workspaceService.getWorkspace();
     return workspace.proxyConfiguration;
