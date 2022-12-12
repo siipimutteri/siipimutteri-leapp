@@ -1,0 +1,228 @@
+name: Leapp Build (siipimutteri)
+
+on:
+  push:
+    branches:
+      - own-build
+
+jobs:
+  build-win:
+    runs-on: windows-2022
+    steps:
+      - name: Prepare GIT
+        shell: bash
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v3
+
+      - name: Bootstrap and build core
+        run: |
+          New-Item -Path upload -ItemType Directory
+          npm install
+          cd packages/core
+          npm install
+          $curVer = (npm pkg get version).Trim('"')
+          $gitHash = (git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
+          npm run build
+
+      - name: Build CLI
+        run: |
+          cd packages/cli
+          npm install ../core
+          $curVer = (npm pkg get version).Trim('"')
+          $gitHash = (git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
+          npm pack
+          Copy-Item -Path noovolari-leapp-cli-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.tgz -Destination ..\..\upload\ -Verbose
+
+      - name: Build Win desktop app
+        shell: bash
+        run: |
+          cd packages/desktop-app
+          npm install ../core
+          $curVer = (npm pkg get version).Trim('"')
+          $gitHash = (git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win
+          npm pkg delete build.publish
+          npm pkg delete build.win.certificateFile
+          npm run release-win
+          Copy-Item -Path "release\Leapp Setup $curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.exe" -Destination ..\..\upload\ -Verbose
+          Copy-Item -Path release\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win-win.zip -Destination ..\..\upload\Leapp-$curVer-$gitHash.$env:GITHUB_RUN_ATTEMPT-win.zip -Verbose
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_BUCKET_REGION }}
+      
+      - name: Publish
+        env:
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+        run: |
+          aws s3 cp upload/ s3://$env:AWS_S3_BUCKET_NAME/ --recursive
+
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Bootstrap
+        run: |
+          mkdir upload
+          npm install
+      - name: Build core
+        run: |
+          cd packages/core
+          npm install
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
+          npm run build
+      - name: Build cli
+        run: |
+          cd packages/cli
+          npm install ../core
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
+          npm pack
+          cp -v noovolari-leapp-cli-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux.tgz ../../upload
+
+      - name: Build desktop-app
+        run: |
+          cd packages/desktop-app
+          npm install ../core
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux
+          npm pkg delete build.publish
+          npm run release-linux
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux.AppImage ../../upload
+          cp -v release/Leapp_$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-linux_amd64.deb ../../upload
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_BUCKET_REGION }}
+      - name: Publish
+        env:
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+        run: |
+          aws s3 cp upload/ s3://$AWS_S3_BUCKET_NAME/ --recursive
+  
+  build-macos-x64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Bootstrap
+        run: |
+          mkdir upload
+          npm install
+      - name: Build core
+        run: |
+          cd packages/core
+          npm install
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac
+          npm run build
+      - name: Build cli
+        run: |
+          cd packages/cli
+          npm install ../core
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac
+          npm pack
+          cp -v noovolari-leapp-cli-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac.tgz ../../upload
+
+      - name: Build desktop-app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          cd packages/desktop-app
+          npm install ../core
+          npm run set-target-x64
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-x64
+          npm pkg delete build.publish
+          npm pkg delete build.afterSign
+          npm pkg delete build.mac.forceCodeSigning
+          npm pkg delete build.mac.hardenedRuntime
+          npm run release-mac
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-mac-x64.zip ../../upload/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-x64.zip
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-x64.dmg ../../upload
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_BUCKET_REGION }}
+      - name: Publish
+        env:
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+        run: |
+          aws s3 cp upload/ s3://$AWS_S3_BUCKET_NAME/ --recursive
+
+  build-macos-arm:
+    needs: [ build-macos-x64 ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Bootstrap
+        run: |
+          mkdir upload
+          npm install
+      - name: Build core
+        run: |
+          cd packages/core
+          npm install
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac
+          npm run build
+      - name: Build cli
+        run: |
+          cd packages/cli
+          npm install ../core
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac
+          npm pack
+          cp -v noovolari-leapp-cli-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac.tgz ../../upload
+
+      - name: Build desktop-app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          cd packages/desktop-app
+          npm install ../core
+          npm run set-target-arm64
+          eval curVer=$(npm pkg get version)
+          eval gitHash=$(git rev-parse --short HEAD)
+          npm pkg set version=$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-arm64
+          npm pkg delete build.publish
+          npm pkg delete build.afterSign
+          npm pkg delete build.mac.forceCodeSigning
+          npm pkg delete build.mac.hardenedRuntime
+          npm run release-mac
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-mac-arm64.zip ../../upload/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-arm64.zip
+          cp -v release/Leapp-$curVer-$gitHash.$GITHUB_RUN_ATTEMPT-mac-arm64.dmg ../../upload
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_BUCKET_REGION }}
+      - name: Publish
+        env:
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+        run: |
+          aws s3 cp upload/ s3://$AWS_S3_BUCKET_NAME/ --recursive
