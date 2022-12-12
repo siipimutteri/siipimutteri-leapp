@@ -280,9 +280,9 @@ export class AwsSsoIntegrationService implements IIntegrationService {
   }
 
   private async login(integrationId: string | number, region: string, portalUrl: string): Promise<LoginResponse> {
-    console.log(await this.nativeService.systemCertsAsync());
+    const systemCerts = await this.nativeService.systemCertsAsync();
     const options = {
-      ca: await this.nativeService.systemCertsAsync({ includeNodeCertificates: true }),
+      ca: systemCerts,
     };
     const redirectClient = this.nativeService.followRedirects[this.getProtocol(portalUrl)];
     portalUrl = await new Promise((resolve, _) => {
