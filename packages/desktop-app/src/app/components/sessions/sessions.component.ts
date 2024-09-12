@@ -295,6 +295,8 @@ export class SessionsComponent implements OnInit, OnDestroy {
 
   getAccountId(s: Session): string {
     switch (s.type) {
+      case SessionType.awsIamRoleFederated:
+        return (s as AwsIamRoleFederatedSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
       case SessionType.awsSsoRole:
         return (s as AwsSsoRoleSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
       case SessionType.awsIamRoleChained:

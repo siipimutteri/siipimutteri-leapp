@@ -14,6 +14,7 @@ import { ExtensionWebsocketService } from "../../../services/extension-websocket
 import { AnalyticsService } from "../../../services/analytics.service";
 import { AwsSsoRoleSession } from "@noovolari/leapp-core/models/aws/aws-sso-role-session";
 import { AwsIamRoleChainedSession } from "@noovolari/leapp-core/models/aws/aws-iam-role-chained-session";
+import { AwsIamRoleFederatedSession } from "@noovolari/leapp-core/models/aws/aws-iam-role-federated-session";
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -103,6 +104,8 @@ export class SessionCardComponent implements OnInit {
     switch (this.session.type) {
       case SessionType.awsSsoRole:
         return (this.session as AwsSsoRoleSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
+      case SessionType.awsIamRoleFederated:
+        return (this.session as AwsIamRoleFederatedSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
       case SessionType.awsIamRoleChained:
         return (this.session as AwsIamRoleChainedSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
       default:
