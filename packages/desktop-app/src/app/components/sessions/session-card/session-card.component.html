@@ -13,7 +13,7 @@
   </div>
 </td>
 <td (dblclick)="switchCredentials()" (click)="openOptionBar($event, session);" (contextmenu)="openContextMenu($event, session)"
-class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}} {{globalColumns.accountId ? '' : 'hidden-column'}} table-column-2">
+class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}} {{!compactMode && globalColumns.accountId ? '' : 'hidden-column'}} table-column-2">
   <div class="span-limiter">
     {{accountId}}
     <a (click)="copyAccountId(accountId)" matTooltip="Copy Account Id"><i class="moon-Copy"></i></a>

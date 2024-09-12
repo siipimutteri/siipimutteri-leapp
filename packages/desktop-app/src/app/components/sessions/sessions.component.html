@@ -7,7 +7,7 @@
         <span>Session</span>
         <i [ngClass]="[columnSettings[0].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[0].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[0].orderStyle && !columnSettings[0].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
       </th>
-      <th (click)="orderSessionsByAccountId(columnSettings[1].orderStyle)" class="{{eGlobalColumns.accountId ? '' : 'hidden-column'}}">
+      <th (click)="orderSessionsByAccountId(columnSettings[1].orderStyle)" class="{{!eCompactMode && eGlobalColumns.accountId ? '' : 'hidden-column'}}">
         <span>Account Id</span>
         <i [ngClass]="[columnSettings[1].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[1].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[1].orderStyle && !columnSettings[1].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
       </th>
