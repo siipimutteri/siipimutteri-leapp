@@ -100,20 +100,25 @@ i.moon-Caret-down {
 
 tr.compact {
   th:nth-child(2) {
-    width: 114px;
-  }
-
-  th:nth-child(3) {
-    width: 115px;
-  }
-
-  th:nth-child(4) {
     width: 80px;
   }
 
-  th:nth-child(6) {
+  th:nth-child(3) {
+    width: 114px;
+  }
+
+  th:nth-child(4) {
+    width: 115px;
+  }
+
+  th:nth-child(5) {
+    width: 80px;
+  }
+
+  th:nth-child(7) {
     width: 50px;
   }
+
 }
 
 tr {
@@ -124,17 +129,24 @@ tr {
   &.hover-item {
     display: none;
   }
-
+  
   th.hidden-column {
     display: none;
   }
-
+  
   th:nth-child(1) {
     padding-left: 22px !important;
   }
 
   th:nth-child(2) {
+    width: 14%;
+  }
+
+  th:nth-child(3) {
     width: 18%;
+    &.active-columns-4 {
+      width: 20%;
+    }
     &.active-columns-3 {
       width: 22%;
     }
@@ -146,22 +158,23 @@ tr {
     }
   }
 
-  th:nth-child(3) {
+  th:nth-child(4) {
     width: 13%;
   }
 
-  th:nth-child(4) {
+  th:nth-child(5) {
     width: 14%;
   }
 
-  th:nth-child(5) {
+  th:nth-child(6) {
     width: 11%;
   }
 
-  th:nth-child(6) {
+  th:nth-child(7) {
     width: 7%;
     text-align: center;
   }
+  
 }
 
 ::ng-deep {

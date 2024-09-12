@@ -71,7 +71,7 @@ export class SessionsComponent implements OnInit, OnDestroy {
   ) {
     this.sessionFiltering = new FilteringPipe();
     this.behaviouralSubjectService = this.appProviderService.behaviouralSubjectService;
-    this.columnSettings = Array.from(Array(5)).map((): ArrowSettings => ({ activeArrow: false, orderStyle: false }));
+    this.columnSettings = Array.from(Array(6)).map((): ArrowSettings => ({ activeArrow: false, orderStyle: false }));
     const subscription = globalHasFilter.subscribe((value) => {
       this.eGlobalFilterExtended = value;
     });
@@ -155,11 +155,29 @@ export class SessionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // TODO: verify this sorting!
-  orderSessionsByRole(orderStyle: boolean): void {
+  orderSessionsByAccountId(orderStyle: boolean): void {
     this.resetArrowsExcept(1);
     if (!orderStyle) {
       this.columnSettings[1].activeArrow = true;
+      globalOrderingFilter.next(
+        JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => this.getAccountId(a).localeCompare(this.getAccountId(b)))))
+      );
+      this.columnSettings[1].orderStyle = !this.columnSettings[1].orderStyle;
+    } else if (this.columnSettings[1].activeArrow) {
+      globalOrderingFilter.next(
+        JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => this.getAccountId(b).localeCompare(this.getAccountId(a)))))
+      );
+      this.columnSettings[1].activeArrow = false;
+    } else {
+      this.columnSettings[1].orderStyle = !this.columnSettings[1].orderStyle;
+      this.orderSessionsByStartTime();
+    }
+  }
+  // TODO: verify this sorting!
+  orderSessionsByRole(orderStyle: boolean): void {
+    this.resetArrowsExcept(2);
+    if (!orderStyle) {
+      this.columnSettings[2].activeArrow = true;
       globalOrderingFilter.next(
         JSON.parse(
           JSON.stringify(
@@ -178,8 +196,8 @@ export class SessionsComponent implements OnInit, OnDestroy {
           )
         )
       );
-      this.columnSettings[1].orderStyle = !this.columnSettings[1].orderStyle;
-    } else if (this.columnSettings[1].activeArrow) {
+      this.columnSettings[2].orderStyle = !this.columnSettings[2].orderStyle;
+    } else if (this.columnSettings[2].activeArrow) {
       globalOrderingFilter.next(
         JSON.parse(
           JSON.stringify(
@@ -198,21 +216,6 @@ export class SessionsComponent implements OnInit, OnDestroy {
           )
         )
       );
-      this.columnSettings[1].activeArrow = false;
-    } else {
-      this.columnSettings[1].orderStyle = !this.columnSettings[1].orderStyle;
-      this.orderSessionsByStartTime();
-    }
-  }
-
-  orderSessionsByType(orderStyle: boolean): void {
-    this.resetArrowsExcept(2);
-    if (!orderStyle) {
-      this.columnSettings[2].activeArrow = true;
-      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => a.type.localeCompare(b.type)))));
-      this.columnSettings[2].orderStyle = !this.columnSettings[2].orderStyle;
-    } else if (this.columnSettings[2].activeArrow) {
-      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => b.type.localeCompare(a.type)))));
       this.columnSettings[2].activeArrow = false;
     } else {
       this.columnSettings[2].orderStyle = !this.columnSettings[2].orderStyle;
@@ -220,17 +223,14 @@ export class SessionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  orderSessionsByNamedProfile(orderStyle: boolean): void {
+  orderSessionsByType(orderStyle: boolean): void {
+    this.resetArrowsExcept(3);
     if (!orderStyle) {
       this.columnSettings[3].activeArrow = true;
-      globalOrderingFilter.next(
-        JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => this.getProfileName(a).localeCompare(this.getProfileName(b)))))
-      );
+      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => a.type.localeCompare(b.type)))));
       this.columnSettings[3].orderStyle = !this.columnSettings[3].orderStyle;
     } else if (this.columnSettings[3].activeArrow) {
-      globalOrderingFilter.next(
-        JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => this.getProfileName(b).localeCompare(this.getProfileName(a)))))
-      );
+      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => b.type.localeCompare(a.type)))));
       this.columnSettings[3].activeArrow = false;
     } else {
       this.columnSettings[3].orderStyle = !this.columnSettings[3].orderStyle;
@@ -238,14 +238,18 @@ export class SessionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  orderSessionsByNamedRegion(orderStyle: boolean): void {
+  orderSessionsByNamedProfile(orderStyle: boolean): void {
     this.resetArrowsExcept(4);
     if (!orderStyle) {
       this.columnSettings[4].activeArrow = true;
-      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => a.region.localeCompare(b.region)))));
+      globalOrderingFilter.next(
+        JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => this.getProfileName(a).localeCompare(this.getProfileName(b)))))
+      );
       this.columnSettings[4].orderStyle = !this.columnSettings[4].orderStyle;
     } else if (this.columnSettings[4].activeArrow) {
-      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => b.region.localeCompare(a.region)))));
+      globalOrderingFilter.next(
+        JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => this.getProfileName(b).localeCompare(this.getProfileName(a)))))
+      );
       this.columnSettings[4].activeArrow = false;
     } else {
       this.columnSettings[4].orderStyle = !this.columnSettings[4].orderStyle;
@@ -253,7 +257,23 @@ export class SessionsComponent implements OnInit, OnDestroy {
     }
   }
 
+  orderSessionsByNamedRegion(orderStyle: boolean): void {
+    this.resetArrowsExcept(5);
+    if (!orderStyle) {
+      this.columnSettings[5].activeArrow = true;
+      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => a.region.localeCompare(b.region)))));
+      this.columnSettings[5].orderStyle = !this.columnSettings[5].orderStyle;
+    } else if (this.columnSettings[5].activeArrow) {
+      globalOrderingFilter.next(JSON.parse(JSON.stringify(this.eGlobalFilteredSessions.sort((a, b) => b.region.localeCompare(a.region)))));
+      this.columnSettings[5].activeArrow = false;
+    } else {
+      this.columnSettings[5].orderStyle = !this.columnSettings[5].orderStyle;
+      this.orderSessionsByStartTime();
+    }
+  }
+
   orderSessionsByStartTime(): void {
+    // TODO this.resetArrowsExcept(x); missing?
     globalOrderingFilter.next(
       JSON.parse(
         JSON.stringify(
@@ -271,6 +291,17 @@ export class SessionsComponent implements OnInit, OnDestroy {
         )
       )
     );
+  }
+
+  getAccountId(s: Session): string {
+    switch (s.type) {
+      case SessionType.awsSsoRole:
+        return (s as AwsSsoRoleSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
+      case SessionType.awsIamRoleChained:
+        return (s as AwsIamRoleChainedSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
+      default:
+        return "";
+    }
   }
 
   getRole(s: Session): string {

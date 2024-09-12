@@ -34,6 +34,7 @@ export const globalResetFilter = new BehaviorSubject<boolean>(false);
 export const globalSegmentFilter = new BehaviorSubject<Segment>(null);
 
 export interface IGlobalColumns {
+  accountId: boolean;
   role: boolean;
   provider: boolean;
   namedProfile: boolean;
@@ -103,6 +104,7 @@ export class CommandBarComponent implements OnInit, OnDestroy, AfterContentCheck
     globalFilteredSessions.next(this.behaviouralSubjectService.sessions);
 
     globalColumns.next({
+      accountId: true,
       role: true,
       provider: true,
       namedProfile: true,

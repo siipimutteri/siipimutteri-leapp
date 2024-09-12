@@ -2,22 +2,29 @@
   <table class="table">
     <thead>
     <tr class="{{eCompactMode ? 'compact' : ''}}">
-      <th (click)="orderSessionsByName(columnSettings[0].orderStyle)"><span>Session</span><i
-        [ngClass]="[columnSettings[0].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[0].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[0].orderStyle && !columnSettings[0].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
+
+      <th (click)="orderSessionsByName(columnSettings[0].orderStyle)">
+        <span>Session</span>
+        <i [ngClass]="[columnSettings[0].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[0].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[0].orderStyle && !columnSettings[0].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
       </th>
-      <th (click)="orderSessionsByRole(columnSettings[1].orderStyle)" class="{{eGlobalColumns.role ? '' : 'hidden-column'}} active-columns-{{eGlobalColumnsCount}}"><span>Identity</span><i
-        [ngClass]="[columnSettings[1].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[1].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[1].orderStyle && !columnSettings[1].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
+      <th (click)="orderSessionsByAccountId(columnSettings[1].orderStyle)" class="{{eGlobalColumns.accountId ? '' : 'hidden-column'}}">
+        <span>Account Id</span>
+        <i [ngClass]="[columnSettings[1].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[1].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[1].orderStyle && !columnSettings[1].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
       </th>
-      <th (click)="orderSessionsByType(columnSettings[2].orderStyle)" class="{{eGlobalColumns.provider ? '' : 'hidden-column'}}"><span>Provider</span><i
-        [ngClass]="[columnSettings[2].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[2].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[2].orderStyle && !columnSettings[2].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
+      <th (click)="orderSessionsByRole(columnSettings[2].orderStyle)" class="{{eGlobalColumns.role ? '' : 'hidden-column'}} active-columns-{{eGlobalColumnsCount}}">
+        <span>Identity</span>
+        <i [ngClass]="[columnSettings[2].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[2].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[2].orderStyle && !columnSettings[2].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
       </th>
-      <th (click)="orderSessionsByNamedProfile(columnSettings[3].orderStyle)" class="{{eGlobalColumns.namedProfile ? '' : 'hidden-column'}}">
-        <span>Named P{{eCompactMode ? '' : 'rofile'}}</span><i
+      <th (click)="orderSessionsByType(columnSettings[3].orderStyle)" class="{{eGlobalColumns.provider ? '' : 'hidden-column'}}"><span>Provider</span><i
         [ngClass]="[columnSettings[3].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[3].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[3].orderStyle && !columnSettings[3].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
       </th>
-      <th (click)="orderSessionsByNamedRegion(columnSettings[4].orderStyle)"
-          class="{{!eCompactMode && eGlobalColumns.region ? '' : 'hidden-column'}}"><span>Region</span><i
+      <th (click)="orderSessionsByNamedProfile(columnSettings[4].orderStyle)" class="{{eGlobalColumns.namedProfile ? '' : 'hidden-column'}}">
+        <span>Named P{{eCompactMode ? '' : 'rofile'}}</span><i
         [ngClass]="[columnSettings[4].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[4].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[4].orderStyle && !columnSettings[4].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
+      </th>
+      <th (click)="orderSessionsByNamedRegion(columnSettings[5].orderStyle)"
+          class="{{!eCompactMode && eGlobalColumns.region ? '' : 'hidden-column'}}"><span>Region</span><i
+        [ngClass]="[columnSettings[5].orderStyle ? 'descendent-order-arrow' : 'ascendent-order-arrow', columnSettings[5].activeArrow ? 'active-arrow' : 'hidden-arrow', !columnSettings[5].orderStyle && !columnSettings[5].activeArrow ? 'moon-Caret-down' : 'moon-Dropdown']"></i>
       </th>
       <th><a (click)="openFilterColumn();"><i class="moon-Table"></i></a></th>
     </tr>

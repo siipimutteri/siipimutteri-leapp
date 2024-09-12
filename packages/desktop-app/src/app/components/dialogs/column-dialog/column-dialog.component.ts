@@ -13,6 +13,7 @@ export class ColumnDialogComponent implements OnInit, OnDestroy {
   eGlobalColumns: IGlobalColumns;
 
   columnForm = new FormGroup({
+    accountId: new FormControl(),
     role: new FormControl(),
     provider: new FormControl(),
     namedProfile: new FormControl(),

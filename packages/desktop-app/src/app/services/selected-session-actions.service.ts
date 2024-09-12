@@ -165,6 +165,12 @@ export class SelectedSessionActionsService {
     return this.optionService.pinned.indexOf(selectedSession.sessionId) !== -1;
   }
 
+  copyAccountId(accountId: string): void {
+    this.behaviouralSubjectService.unselectSessions();
+    this.appService.copyToClipboard(accountId);
+    this.messageToasterService.toast("Account Id copied!", ToastLevel.success, "Information copied!");
+  }
+
   copyProfile(profileName: string): void {
     this.behaviouralSubjectService.unselectSessions();
     this.appService.copyToClipboard(profileName);

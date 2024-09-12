@@ -6,29 +6,36 @@
          alt="" title=""/>
     &nbsp;
     <i
-      class="moon-Hover-{{session.status !== eSessionStatus.active && session.status !== eSessionStatus.pending ? 'Start' : 'Stop'}} moon-hover-session hover-item"
-      (click)="session.status === eSessionStatus.active || session.status === eSessionStatus.pending ? stopSession() : startSession()"></i>
+    class="moon-Hover-{{session.status !== eSessionStatus.active && session.status !== eSessionStatus.pending ? 'Start' : 'Stop'}} moon-hover-session hover-item"
+    (click)="session.status === eSessionStatus.active || session.status === eSessionStatus.pending ? stopSession() : startSession()"></i>
     <span class="{{session.status === eSessionStatus.active ? 'strong' : ''}}">{{$any(session)?.awsAccount ? $any(session)?.awsAccount?.accountName : session.sessionName}}</span>
     <i class="moon-Pin" *ngIf="optionService.pinned.indexOf(session.sessionId) !== -1"></i>
   </div>
 </td>
 <td (dblclick)="switchCredentials()" (click)="openOptionBar($event, session);" (contextmenu)="openContextMenu($event, session)"
-    class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}}
-           {{globalColumns.role ? '' : 'hidden-column'}} table-column-2 active-columns-{{globalColumnsCount}}">
+class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}} {{globalColumns.accountId ? '' : 'hidden-column'}} table-column-2">
   <div class="span-limiter">
-    <span class="{{session.status === eSessionStatus.active ? 'strong' : ''}}">
-      <ng-container *ngIf="session.type !== eSessionType.awsIamUser && session.type !== eSessionType.azure">{{ session | detail }}</ng-container>
-      <ng-container *ngIf="session.type === eSessionType.awsIamUser">{{ session.sessionName }}</ng-container>
-    </span>
+    {{accountId}}
+    <a (click)="copyAccountId(accountId)" matTooltip="Copy Account Id"><i class="moon-Copy"></i></a>
   </div>
 </td>
 <td (dblclick)="switchCredentials()" (click)="openOptionBar($event, session);" (contextmenu)="openContextMenu($event, session)"
+class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}}
+{{globalColumns.role ? '' : 'hidden-column'}} table-column-3 active-columns-{{globalColumnsCount}}">
+<div class="span-limiter">
+  <span class="{{session.status === eSessionStatus.active ? 'strong' : ''}}">
+    <ng-container *ngIf="session.type !== eSessionType.awsIamUser && session.type !== eSessionType.azure">{{ session | detail }}</ng-container>
+    <ng-container *ngIf="session.type === eSessionType.awsIamUser">{{ session.sessionName }}</ng-container>
+  </span>
+</div>
+</td>
+<td (dblclick)="switchCredentials()" (click)="openOptionBar($event, session);" (contextmenu)="openContextMenu($event, session)"
     class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}}
-           {{globalColumns.provider ? '' : 'hidden-column'}} table-column-3">
+           {{globalColumns.provider ? '' : 'hidden-column'}} table-column-4">
   <span class="badge badge-rounded badge-{{getSessionProviderClass(session.type)}}">{{getSessionProviderLabel(session.type)}}</span>
 </td>
 <td (dblclick)="switchCredentials()" (click)="openOptionBar($event, session);" (contextmenu)="openContextMenu($event, session)"
-    class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}} table-column-4
+    class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}} table-column-5
            {{globalColumns.namedProfile ? '' : 'hidden-column'}}">
   <div class="span-limiter">
     <span class="{{session.status === eSessionStatus.active ? 'strong' : ''}}">
@@ -41,11 +48,11 @@
 </td>
 <td (dblclick)="switchCredentials()" (click)="openOptionBar($event, session);" (contextmenu)="openContextMenu($event, session)"
     class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}}
-           {{!compactMode && globalColumns.region ? '' : 'hidden-column'}} table-column-5">
+           {{!compactMode && globalColumns.region ? '' : 'hidden-column'}} table-column-6">
   <span class="badge badge-region badge-{{session.status === eSessionStatus.active ? 'black' : 'gray'}}">{{session.region}}</span>
 </td>
 <td (dblclick)="switchCredentials()" (click)="openOptionBar($event, session);" (contextmenu)="openContextMenu($event, session)"
-    class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}} table-column-6">
+    class="{{isSelected ? 'selected' : (session.status !== eSessionStatus.inactive ? 'active' : '')}} table-column-7">
   <i class="status-item fas fa-circle {{session.status === eSessionStatus.active ? 'active' : 'offline'}}"
      *ngIf="session.status !== eSessionStatus.pending"></i>
   <i class="status-item far fa-spinner-third fa-spin" *ngIf="session.status === eSessionStatus.pending"></i>

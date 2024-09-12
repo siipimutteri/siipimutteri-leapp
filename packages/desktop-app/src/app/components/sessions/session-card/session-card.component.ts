@@ -12,6 +12,8 @@ import { OptionsService } from "../../../services/options.service";
 import { SelectedSessionActionsService } from "../../../services/selected-session-actions.service";
 import { ExtensionWebsocketService } from "../../../services/extension-websocket.service";
 import { AnalyticsService } from "../../../services/analytics.service";
+import { AwsSsoRoleSession } from "@noovolari/leapp-core/models/aws/aws-sso-role-session";
+import { AwsIamRoleChainedSession } from "@noovolari/leapp-core/models/aws/aws-iam-role-chained-session";
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -92,6 +94,24 @@ export class SessionCardComponent implements OnInit {
    */
   async stopSession(): Promise<void> {
     await this.selectedSessionActionService.stopSession(this.session);
+  }
+
+  /**
+   *  Get Account Id for the session
+   */
+  get accountId(): string {
+    switch (this.session.type) {
+      case SessionType.awsSsoRole:
+        return (this.session as AwsSsoRoleSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
+      case SessionType.awsIamRoleChained:
+        return (this.session as AwsIamRoleChainedSession).roleArn.match(/[^arn:aws:iam::][0-9]+/)[0];
+      default:
+        return "-";
+    }
+  }
+
+  copyAccountId(accountId: string): void {
+    this.selectedSessionActionService.copyAccountId(accountId);
   }
 
   getSessionTypeIcon(type: SessionType): string {
